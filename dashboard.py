@@ -6,6 +6,14 @@ import joblib
 import os
 
 st.set_page_config(page_title="Outbreak Tracker", layout="wide")
+# Add this right after st.set_page_config
+st.markdown("""
+    <style>
+    .main { background-color: #f5f7f9; }
+    .stMetric { background-color: #000000; padding: 15px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    h1 { color: #2c3e50; }
+    </style>
+    """, unsafe_allow_html=True)
 
 # Styling
 st.title("🏥 Disease Surveillance Dashboard")
@@ -20,11 +28,19 @@ def load_results():
 results = load_results()
 
 if results is not None:
-    # Metric Row
-    high_risk_count = results[results['three_interval_anomaly'] == 1].shape[0]
+    # sorting
+    results = results.sort_values(
+        by=['three_interval_anomaly', 'trend_prediction'], 
+        ascending=[False, True]
+    )
+
+    total_diseases = len(results)
+    high_risk_count = int(results['three_interval_anomaly'].sum())
+    
     c1, c2 = st.columns(2)
-    c1.metric("Total Diseases", len(results))
-    c2.metric("High Risk Alerts", high_risk_count)
+    # Adding 'label' and 'value' clearly
+    c1.metric(label="Total Diseases Monitored", value=total_diseases)
+    c2.metric(label="High Risk Alerts 🚨", value=high_risk_count)
 
     # Layout Tabs
     tab1, tab2 = st.tabs(["Global Risk Overview", "Detailed Trends"])
@@ -37,6 +53,11 @@ if results is not None:
 
     with tab2:
         st.write("### Data Table")
-        st.dataframe(results, use_container_width=True)
+        def color_trend(val):
+            color = '#ff4b4b' if val == 'increase' else '#28a745' if val == 'stable' else 'white'
+            return f'color: {color}; font-weight: bold'
+
+        styled_df = results.style.applymap(color_trend, subset=['trend_prediction'])
+        st.dataframe(styled_df, use_container_width=True)
 else:
     st.error("Please run the disease_model.py script first to generate results.")
