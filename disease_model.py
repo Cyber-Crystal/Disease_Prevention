@@ -191,6 +191,6 @@ if __name__ == "__main__":
         plt.show()
 
         # Save the plot_data list so the dashboard can access the raw time-series
-        joblib.dump(final_output, "plot_data.pkl")
+        joblib.dump(final_output, "model.pkl")
         print("\nmodel saved successfully")
         # ... (at the very bottom of your script)
